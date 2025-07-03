@@ -624,6 +624,91 @@
             background: radial-gradient(ellipse at bottom, #555 0%, #333 45%);
         }
 
+        /* Flavor Selector Styling */
+        #modalFlavorSelector p {
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        #modalFlavorSelector label {
+            margin-right: 15px;
+            font-size: 0.95em;
+            cursor: pointer;
+        }
+        #modalFlavorSelector input[type="radio"] {
+            margin-right: 5px;
+            vertical-align: middle; /* Align radio button with label text */
+        }
+
+        /* Dark Mode Flavor Selector Styling */
+        body.dark-mode #modalFlavorSelector p {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode #modalFlavorSelector label {
+            color: #d0d0d0;
+        }
+        body.dark-mode #modalFlavorSelector input[type="radio"] {
+            /* Optional: custom styling for radio buttons in dark mode if needed */
+            /* For example, to better match the dark theme if default is too light/stark */
+        }
+
+        /* Custom Radio Button Styling for Flavors */
+        #modalFlavorSelector input[type="radio"] {
+            opacity: 0;
+            position: fixed;
+            width: 0;
+            height: 0;
+        }
+
+        #modalFlavorSelector label {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 5px 5px 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 20px; /* This should give a nice pill shape with current padding */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            background-color: #f8f8f8; /* Default light mode background */
+            color: #333; /* Default light mode text */
+        }
+
+        #modalFlavorSelector label:hover {
+            background-color: #e9e9e9;
+            border-color: #bbb;
+        }
+
+        #modalFlavorSelector input[type="radio"]:checked + label {
+            background-color: #9a86fb; /* Theme color for selected */
+            color: white;
+            border-color: #9a86fb;
+        }
+
+        #modalFlavorSelector label:active {
+            transform: scale(0.97);
+        }
+
+        /* Dark Mode for Custom Radio Buttons */
+        body.dark-mode #modalFlavorSelector label {
+            background-color: #3a3a3a; /* Darker background for unselected */
+            color: #d0d0d0; /* Lighter text */
+            border-color: #555; /* Darker border */
+        }
+
+        body.dark-mode #modalFlavorSelector label:hover {
+            background-color: #4a4a4a; /* Slightly lighter on hover */
+            border-color: #777;
+        }
+
+        body.dark-mode #modalFlavorSelector input[type="radio"]:checked + label {
+            background-color: #7a6ad4; /* Theme purple, perhaps a bit lighter for dark mode contrast if needed */
+            color: white;
+            border-color: #7a6ad4;
+        }
+        /* Active state should be fine as it's a transform, but if color change is desired for active: */
+        /* body.dark-mode #modalFlavorSelector label:active { } */
+
     </style>
 </head>
 <body>
@@ -725,6 +810,9 @@
             <h2 id="modalName">Product Name</h2>
             <p id="modalPrice">Price: $0.00</p>
             <!-- <p id="modalDescription">Some description here...</p> -->
+            <div id="modalFlavorSelector" style="margin-top: 10px; margin-bottom: 15px;">
+                <!-- Flavor options will be populated here by JavaScript -->
+            </div>
             <a id="modalWhatsAppLink" href="#" target="_blank" class="button" style="margin-top: 10px; display: inline-block;">Contact on WhatsApp</a>
         </div>
     </div>
@@ -756,9 +844,11 @@
         const modalImage = document.getElementById('modalImage');
         const modalPrice = document.getElementById('modalPrice');
         const modalWhatsAppLink = document.getElementById('modalWhatsAppLink');
+        const modalFlavorSelector = document.getElementById('modalFlavorSelector'); // Get the flavor selector div
         const closeButton = document.querySelector('.close-button');
 
         const products = document.querySelectorAll('.product');
+        const availableFlavors = ["Menthol", "Fruit Punch"]; // Example flavors
 
         products.forEach(product => {
             product.addEventListener('click', () => {
@@ -772,9 +862,50 @@
                 modalImage.alt = name; // Set alt text for accessibility
                 modalPrice.textContent = `Precio: ${price}`;
 
-                const message = `Hola, estoy interesado/a en el producto: ${name} - Precio: ${price}`;
-                modalWhatsAppLink.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+                // Clear previous flavor options and create new ones
+                modalFlavorSelector.innerHTML = '<p style="margin-bottom: 5px; font-weight: bold;">Select a Flavor:</p>';
+                let selectedFlavor = ''; // Variable to store the selected flavor
 
+                availableFlavors.forEach((flavor, index) => {
+                    const radioId = `flavor-${index}`;
+                    const radioInput = document.createElement('input');
+                    radioInput.type = 'radio';
+                    radioInput.name = 'flavor';
+                    radioInput.value = flavor;
+                    radioInput.id = radioId;
+                    radioInput.style.marginRight = '5px';
+                    // if (index === 0) { // Optionally pre-select the first flavor
+                        // radioInput.checked = true;
+                        // selectedFlavor = flavor;
+                    // }
+
+                    const label = document.createElement('label');
+                    label.htmlFor = radioId;
+                    label.textContent = flavor;
+                    label.style.marginRight = '15px';
+                    label.style.cursor = 'pointer';
+
+                    modalFlavorSelector.appendChild(radioInput);
+                    modalFlavorSelector.appendChild(label);
+
+                    radioInput.addEventListener('change', (event) => {
+                        if (event.target.checked) {
+                            selectedFlavor = event.target.value;
+                            updateWhatsAppLink();
+                        }
+                    });
+                });
+                
+                function updateWhatsAppLink() {
+                    let message = `Hola, estoy interesado/a en el producto: ${name} - Precio: ${price}`;
+                    if (selectedFlavor) {
+                        message += ` - Sabor: ${selectedFlavor}`;
+                    }
+                    modalWhatsAppLink.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+                }
+
+                updateWhatsAppLink(); // Initial call to set the link without flavor or with pre-selected
+                
                 modal.style.display = 'block';
             });
         });
